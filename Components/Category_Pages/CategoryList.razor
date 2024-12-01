@@ -1,10 +1,17 @@
 ﻿@page "/category"
+@using YumBlazor.Data.Repository
+
+
+@inject ICategoryRepository _categoryRepository
 
 @if(IsProcessing){
-    <div class="position-absolute w-75 h-75 d-flex flex-coumn align-items-center bg-white justify-content-center">
-        <img src="~/images/loading.gif" alt="loading" />
+
+    <div class="position-absolute w-75 h-75 d-flex flex-column align-items-center bg-white justify-content-center">
+        <img src="/images/loading.gif" alt="loading" />
     </div>
+
 }else{
+
     <div class="card shadow border-0 mt-4">
         <div class="card-header bg-black bg-gradient ml-0 py-3">
             <div class="row">
@@ -16,14 +23,58 @@
         <div class="card-body p-4">
             <div class="row pd-3">
                 <div class="col-12 text-end">
-                    <button class="btn btn-lg btn-secondary" style="width:250px;">Add New Categroy</button>
+                    <a href="category/create" class="btn btn-lg btn-secondary" style="width:250px;"><i class="bi bi-plus-square"></i>Add New Categroy</a>
                 </div>
             </div>
-            <p>Category's List</p>
+            @if(Categories.Any()){
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var obj in Categories)
+                        {
+                            <tr>
+                                <td>@obj.Name</td>
+                                <td>
+                                    <a href="@($"category/update/{obj.Id}")" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square"></i>Edit</a>
+                                    <button class="btn btn-sm btn-danger"><i class="bi bi-trash-fill"></i>Delete</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
         </div>
     </div>
 }
 
 @code {
-    public bool IsProcessing { get; set; } = false;
+    private bool IsProcessing { get; set; } = true;
+    private IEnumerable<Category> Categories { get; set; } = new List<Category>();
+
+    protected override async Task OnInitializedAsync()
+    {
+      
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadCategories();
+            IsProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+
+    private async Task LoadCategories()
+    {
+        Categories = await _categoryRepository.GetAllAsync();
+        // Load Categories
+    }       
 }
