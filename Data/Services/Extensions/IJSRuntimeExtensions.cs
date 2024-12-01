@@ -14,5 +14,4 @@ public static class IJSRuntimeExtensions
         await js.InvokeVoidAsync("ShowToastr","error", message);
     }
   
-
 }
