@@ -6,10 +6,12 @@ namespace YumBlazor.Data.Repository;
 public class ProductRepository : IProductRepository
 {
     private readonly ApplicationDbContext _db;
+    private readonly IWebHostEnvironment _webHostEnvironment;
 
-    public ProductRepository(ApplicationDbContext db)
+    public ProductRepository(ApplicationDbContext db, IWebHostEnvironment webHostEnvironment)
     {
         _db = db;
+        _webHostEnvironment = webHostEnvironment;
     }
 
     public async Task<Product> CreateAsync(Product obj)
@@ -22,6 +24,13 @@ public class ProductRepository : IProductRepository
     public async Task<bool> DeleteAsync(int id)
     {
         var obj = await _db.Product.FirstOrDefaultAsync(u => u.Id == id);
+        var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, obj.ImageUrl.TrimStart('/'));
+
+        if (File.Exists(imagePath))
+        {
+            File.Delete(imagePath);
+        }
+
         if (obj != null)
         {
             _db.Product.Remove(obj);
@@ -43,7 +52,7 @@ public class ProductRepository : IProductRepository
 
     public async Task<IEnumerable<Product>> GetAllAsync()
     {
-        return await _db.Product.ToListAsync();
+        return await _db.Product.Include(u=>u.Category).ToListAsync();
     }
 
     public async Task<Product> UpdateAsync(Product obj)
