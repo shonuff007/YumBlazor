@@ -30,9 +30,8 @@
             <NavBar></NavBar>
         }
         
-        <article class="content px-4">
-            @Body
-        </article>
+        @Body
+      
     </main>
 </div>
 
@@ -50,11 +49,11 @@
         _navBarVisiable = await ShowNavBar();
     }
 
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         _navBarVisiable = await ShowNavBar();
     }
-
 
 
     private async Task<bool> ShowNavBar()
@@ -69,7 +68,8 @@
         }
 
         //NAv bar will not be display to admin user
-        if(!user.IsInRole(SD.Role_Admin)){
+        if(!user.IsInRole(SD.Role_Admin))
+        {
             return true;
         }
 
