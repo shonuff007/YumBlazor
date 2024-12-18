@@ -3,6 +3,7 @@
 @using System.Globalization
 
 @inject IProductRepository _productRepository
+@inject ICategoryRepository _categoryRepository
 
 <PageTitle>Home</PageTitle>
 
@@ -22,6 +23,7 @@ else
 
                 <div class="d-flex align-items-center" style="width: 100%;">
                     <input type="text" class="form-control rounded-pill"
+                    @bind:event="oninput" @bind:get="_searchText" @bind:set="FilterProductByName"
                     placeholder="Search for Food Items!"
                     style="width: 100%; padding: 20px;">
                     <span style="position: relative; left: -43px;"><i class="bi bi-search"></i></span>
@@ -32,18 +34,26 @@ else
         <div class="content px-4 m-2">
             <ul class="nav nav-underline justify-content-center mb-2">
                 <li class="nav-item">
-                    <span class="nav-link" href="#" style="cursor: pointer">All</span>
+                    <span class="nav-link @GetActiveTabClass(0)" href="#" style="cursor: pointer" @onclick="()=>FilterProducts(0)">All</span>
                 </li>
-                <li class="nav-item">
-                    <span class="nav-link" href="#" style="cursor: pointer">Cat 1</span>
-                </li>
-                <li class="nav-item">
+                @foreach(var category in Categorys)
+                {
+                    <li class="nav-item">
+                        <span class="nav-link 
+                            @GetActiveTabClass(category.Id)" href="#" style="cursor: pointer" 
+                            @onclick="()=>FilterProducts(category.Id)">
+                            @category.Name
+                        </span>
+                    </li>
+                }
+
+                @*  <li class="nav-item">
                     <span class="nav-link" href="#" style="cursor: pointer">Cat 2</span>
-                </li>
+                </li> *@
             </ul>
             <div class="row mt-4 mx-1">
 
-                @foreach (var product in products)
+                @foreach (var product in FilteredProducts)
                 {
 
                     <div class="col-12 col-md-6 col-lg-4 pe-3 mb-5">
@@ -53,9 +63,9 @@ else
                                     @if(!string.IsNullOrEmpty(product.SpecialTag)){
                                         <i class="bi bi-star btn btn-outline-success disabled"> @product.SpecialTag</i>
                                     }
-                                   
+
                                 </div>
-                                <div class="col-6 text-end px-3">
+                                <div class="col-6 text-danger px-3 h3">
                                     @product.Price.ToString("C", CultureInfo.GetCultureInfo("en-us"))
                                 </div>
                             </div>
@@ -66,18 +76,19 @@ else
                                 }else{
                                     <img class="card-img-top img-thumbnail img-rounded w-50 mt-2" src="~/images/default.png" style="">
                                 }
-                                
+
                             </div>
                             <div class="card-body">
                                 <h5 class="card-title text-center lead text-success">@product.Name</h5>
-                                <h4 class="text-center">
-                                    <i class="bi bi-cart3 btn btn-success text-right  px-5" style="width:300px"> Add to cart</i>
-                                </h4>
                                 <p class="card-text mt-2">@((MarkupString)@product.Description)</p>
+                                <h4 class="text-center">
+                                    <i class="bi bi-cart3 btn btn-success text-right  px-5" form-control> Add to cart</i>
+                                </h4>
+
 
                             </div>
                         </div>
-                   </div>
+                    </div>
                 }
 
 
@@ -88,7 +99,11 @@ else
 
 @code{
     private IEnumerable<Product> products = new List<Product>();
+    private IEnumerable<Category> Categorys = new List<Category>();
+    private IEnumerable<Product> FilteredProducts = new List<Product>();
     private bool IsProcessing { get; set; } = true;
+    private int _selectedCategoryId = 0;
+    private string _searchText { get; set; } = "";
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -100,11 +115,53 @@ else
             StateHasChanged();
         }
     }
- 
+
+
     private async Task LoadProducts()
     {
-        
         products = await _productRepository.GetAllAsync();
-      
+        Categorys = await _categoryRepository.GetAllAsync();
+        FilterProducts(0);
     }
+
+
+    private void FilterProducts(int categoryId)
+    {
+        if (categoryId == 0)
+        {
+            FilteredProducts = products;
+            _selectedCategoryId = categoryId;
+            return;
+        }else
+        {
+            FilteredProducts = products.Where(p => p.CategoryId == categoryId).ToList();
+            _selectedCategoryId = categoryId;
+            _searchText = string.Empty;
+        }
+    }
+
+
+    private void FilterProductByName(string newValueOfSearchText)
+    {
+        if (string.IsNullOrEmpty(newValueOfSearchText))
+        {
+            FilteredProducts = products;
+        }
+        else
+        {
+            FilteredProducts = products
+                .Where(p => p.Name.ToLower().Contains(newValueOfSearchText, StringComparison.InvariantCultureIgnoreCase)).ToList();
+        }
+
+        _searchText = newValueOfSearchText;
+    }
+
+
+    private string GetActiveTabClass(int categoryId)
+    {
+        return categoryId == _selectedCategoryId ? "active" : string.Empty;
+    }
+
+
 }
+
