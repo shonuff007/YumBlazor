@@ -2,8 +2,12 @@
 
 @using System.Globalization
 
+@inject AuthenticationStateProvider _AuthenticationStateProvider
+@inject IJSRuntime _JS
+@inject NavigationManager _NavigationManager
 @inject IProductRepository _productRepository
 @inject ICategoryRepository _categoryRepository
+@inject IShoppingCart _cartRepository
 
 <PageTitle>Home</PageTitle>
 
@@ -41,7 +45,7 @@ else
                     <li class="nav-item">
                         <span class="nav-link 
                             @GetActiveTabClass(category.Id)" href="#" style="cursor: pointer" 
-                            @onclick="()=>FilterProducts(category.Id)">
+                        @onclick="()=>FilterProducts(category.Id)">
                             @category.Name
                         </span>
                     </li>
@@ -82,7 +86,9 @@ else
                                 <h5 class="card-title text-center lead text-success">@product.Name</h5>
                                 <p class="card-text mt-2">@((MarkupString)@product.Description)</p>
                                 <h4 class="text-center">
-                                    <i class="bi bi-cart3 btn btn-success text-right  px-5" form-control> Add to cart</i>
+                                    <div class="m-lg-auto p-2" @onclick="()=>AddOrderItem(product)">
+                                        <i class="bi bi-cart3 btn btn-success text-right  px-5" form-control> Add to cart</i>
+                                    </div>
                                 </h4>
 
 
@@ -162,6 +168,33 @@ else
         return categoryId == _selectedCategoryId ? "active" : string.Empty;
     }
 
+
+    private async Task AddOrderItem(Product product)
+    {
+        var authState = await _AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var authenticated = user.Identity is not null && user.Identity.IsAuthenticated;
+
+        //if user is not authenticated, redirect to login page
+        if (!authenticated)
+        {
+            _NavigationManager.NavigateTo("account/login");
+        }else
+        {
+            //Add itrem to cart
+            var result = await 
+                _cartRepository.UpdateCartAsync(user.FindFirst(u => u.Type.Contains("nameidentifier"))?.Value, product.Id, 1);
+
+           if(result)
+           {
+                _JS?.ToastrSuccess("Item added to cart successfully!");
+           }
+           else
+           {
+                _JS?.ToastrSuccess("Error encountered!");
+           }
+        }
+    }
 
 }
 
