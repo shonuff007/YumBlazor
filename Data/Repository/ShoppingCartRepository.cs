@@ -57,4 +57,9 @@ public class ShoppingCartRepository : IShoppingCart
         // UpDaate Count of Item in Cart
         return await _db.SaveChangesAsync() > 0;
     }
+
+    //public Task<bool> UpdateCartAsync(int userId, int productId, int updateBy)
+    //{
+    //    throw new NotImplementedException();
+    //}
 }
