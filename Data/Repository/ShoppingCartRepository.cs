@@ -25,7 +25,7 @@ public class ShoppingCartRepository : IShoppingCart
     }
 
   
-    public async Task<int> GettotalCartCartCountAsync(string? userId)
+    public async Task<int> GetTotalCartCartCountAsync(string? userId)
     {
         int cartCount = 0;
         var cartItems = await _db.ShoppingCart.Where(u => u.UserId == userId).ToListAsync();
@@ -37,6 +37,8 @@ public class ShoppingCartRepository : IShoppingCart
 
         return cartCount;
     }
+
+    
 
     public async Task<bool> UpdateCartAsync(string userId, int productId, int updateBy)
     {

@@ -6,5 +6,5 @@ public interface IShoppingCart
     public Task<IEnumerable<ShoppingCart>> GetAllAsync(string? userId);
     public Task<bool> ClearCartAsync(string userId);
 
-    public Task<int> GettotalCartCartCountAsync(string? userId);
+    public Task<int> GetTotalCartCartCountAsync(string? userId);
 }
